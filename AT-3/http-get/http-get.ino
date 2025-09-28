@@ -1,0 +1,152 @@
+#include <WiFi.h>
+#include <HTTPClient.h>
+#include <ArduinoJson.h>
+
+const char* SSID = "CLARO_2GEA41ED";
+const char* PASS = "B8EA42ED";
+const char* URL  = "http://jsonplaceholder.typicode.com/todos/1";
+constexpr int N = 5;          // número de amostras
+constexpr int DELAY_MS = 500; // pausa entre requisições
+
+double mean(const double* v, int n) {
+  double s = 0.0;
+  for (int i = 0; i < n; ++i) s += v[i];
+  return s / n;
+}
+
+// Desvio-padrão amostral (n-1)
+double stddev_sample(const double* v, int n) {
+  if (n < 2) return 0.0;
+  double m = mean(v, n);
+  double s2 = 0.0;
+  for (int i = 0; i < n; ++i) {
+    double d = v[i] - m;
+    s2 += d * d;
+  }
+  return sqrt(s2 / (n - 1));
+}
+
+void connectWiFi() {
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(SSID, PASS);
+  Serial.print("Conectando ao Wi-Fi");
+  uint32_t t0 = millis();
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+    if (millis() - t0 > 25000) { // 25 s timeout
+      Serial.println("\nFalha ao conectar no Wi-Fi.");
+      return;
+    }
+  }
+  Serial.println("\nWi-Fi OK. IP: " + WiFi.localIP().toString());
+}
+
+void setup() {
+  Serial.begin(115200);
+  delay(1000);
+  connectWiFi();
+  if (WiFi.status() != WL_CONNECTED) return;
+
+  double tempos_ms[N] = {0};
+  int    status_codes[N] = {0};
+  size_t payload_bytes[N] = {0};
+
+  StaticJsonDocument<1024> doc; // ajuste se o payload for maior
+
+  Serial.println("\n--- Iniciando 5 coletas ---");
+  for (int i = 0; i < N; ++i) {
+    HTTPClient http;
+
+    if (!http.begin(URL)) {
+      Serial.printf("#%d: Erro http.begin()\n", i + 1);
+      tempos_ms[i] = NAN;
+      status_codes[i] = -1;
+      payload_bytes[i] = 0;
+      delay(DELAY_MS);
+      continue;
+    }
+
+    uint32_t t0 = millis();
+    int code = http.GET();
+    uint32_t dt = millis() - t0;
+
+    tempos_ms[i]   = (double)dt;
+    status_codes[i] = code;
+
+    if (code > 0) {
+      String payload = http.getString();
+      payload_bytes[i] = payload.length();
+
+      Serial.printf("#%d: HTTP %d | Tempo=%lu ms | Tamanho=%u bytes\n",
+                    i + 1, code, (unsigned long)dt, (unsigned)payload_bytes[i]);
+
+      Serial.println("Body:");
+      Serial.println(payload);
+
+      // Parse JSON (ajuste campos conforme sua API)
+      DeserializationError err = deserializeJson(doc, payload);
+      if (!err) {
+        int userId           = doc["userId"] | -1;
+        int id               = doc["id"]     | -1;
+        const char* title    = doc["title"]  | "";
+        bool completed       = doc["completed"] | false;
+
+        Serial.println("---- Campos ----");
+        Serial.printf("userId: %d\n", userId);
+        Serial.printf("id: %d\n", id);
+        Serial.printf("title: %s\n", title);
+        Serial.printf("completed: %s\n", completed ? "true" : "false");
+      } else {
+        Serial.print("Erro parse JSON: ");
+        Serial.println(err.c_str());
+      }
+    } else {
+      Serial.printf("#%d: Falha GET: %s\n",
+                    i + 1, http.errorToString(code).c_str());
+      payload_bytes[i] = 0;
+    }
+
+    http.end();
+    delay(DELAY_MS);
+  }
+
+  // Estatísticas (ignora amostras inválidas)
+  double valids[N];
+  int k = 0;
+  for (int i = 0; i < N; ++i) {
+    if (!isnan(tempos_ms[i])) valids[k++] = tempos_ms[i];
+  }
+
+  if (k > 0) {
+    double m  = mean(valids, k);
+    double sd = stddev_sample(valids, k);
+
+    double minv = valids[0], maxv = valids[0];
+    for (int i = 1; i < k; ++i) {
+      if (valids[i] < minv) minv = valids[i];
+      if (valids[i] > maxv) maxv = valids[i];
+    }
+
+    int ok = 0;
+    for (int i = 0; i < N; ++i)
+      if (status_codes[i] >= 200 && status_codes[i] <= 299) ok++;
+
+    Serial.println("\n--- Resumo ---");
+    Serial.printf("Amostras válidas: %d/%d\n", k, N);
+    Serial.printf("Sucessos HTTP (2xx): %d/%d\n", ok, N);
+    Serial.printf("Tempo (ms): media=%.2f | desvio_padrao=%.2f | min=%.0f | max=%.0f\n",
+                  m, sd, minv, maxv);
+
+    // (Opcional) CSV para colar no relatório
+    Serial.println("\n#CSV: indice,tempo_ms,status,bytes");
+    for (int i = 0; i < N; ++i)
+      Serial.printf("%d,%.0f,%d,%u\n", i + 1, tempos_ms[i], status_codes[i], (unsigned)payload_bytes[i]);
+  } else {
+    Serial.println("\nSem amostras válidas para estatísticas.");
+  }
+
+  Serial.println("\nConcluído.");
+}
+
+void loop() { /* vazio */ }

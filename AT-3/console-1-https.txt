@@ -1,0 +1,48 @@
+Wi-Fi OK
+HTTP 200 | 1938 ms | 350 bytes
+2025-09-27T16:00:16.091393-04:00
+America/Manaus
+
+#include <WiFi.h>
+#include <WiFiClientSecure.h>
+#include <HTTPClient.h>
+#include <ArduinoJson.h>
+
+const char* SSID = "";
+const char* PASS = "";
+const char* URL  = "https://worldtimeapi.org/api/timezone/America/Manaus";
+
+void setup() {
+  Serial.begin(115200);
+  WiFi.begin(SSID, PASS);
+  while (WiFi.status() != WL_CONNECTED) { delay(300); Serial.print("."); }
+  Serial.println("\nWi-Fi OK");
+
+  WiFiClientSecure client;
+  client.setInsecure(); // Somente para laboratório
+
+  HTTPClient http;
+  http.begin(client, URL);
+
+  uint32_t t0 = millis();
+  int code = http.GET();
+  uint32_t dt = millis() - t0;
+
+  if (code > 0) {
+    String body = http.getString();
+    Serial.printf("HTTP %d | %lu ms | %d bytes\n", code, (unsigned long)dt, body.length());
+
+    StaticJsonDocument<1024> doc;
+    if (deserializeJson(doc, body) == DeserializationError::Ok) {
+      Serial.println(doc["datetime"].as<const char*>()); // exemplo de campo
+      Serial.println(doc["timezone"].as<const char*>());
+    } else {
+      Serial.println("Erro parse JSON");
+    }
+  } else {
+    Serial.printf("Erro GET: %d\n", code);
+  }
+  http.end();
+}
+
+void loop() {}

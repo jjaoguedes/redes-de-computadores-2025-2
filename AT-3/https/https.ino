@@ -1,0 +1,146 @@
+#include <WiFi.h>
+#include <WiFiClientSecure.h>
+#include <HTTPClient.h>
+#include <ArduinoJson.h>
+
+const char* SSID = "CLARO_2GEA41ED";
+const char* PASS = "B8EA42ED";
+const char* URL  = "https://worldtimeapi.org/api/timezone/America/Manaus";
+// =======================
+
+constexpr int N = 5;          // número de amostras
+constexpr int DELAY_MS = 500; // espera entre requisições (evita rate limit)
+
+double mean(const double* v, int n) {
+  double s = 0.0;
+  for (int i = 0; i < n; ++i) s += v[i];
+  return s / n;
+}
+
+// Desvio-padrão amostral (n-1)
+double stddev_sample(const double* v, int n) {
+  if (n < 2) return 0.0;
+  double m = mean(v, n);
+  double s2 = 0.0;
+  for (int i = 0; i < n; ++i) {
+    double d = v[i] - m;
+    s2 += d * d;
+  }
+  return sqrt(s2 / (n - 1));
+}
+
+void setup() {
+  Serial.begin(115200);
+  delay(500);
+
+  Serial.printf("Conectando ao Wi-Fi: %s\n", SSID);
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(SSID, PASS);
+
+  uint32_t tstart = millis();
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(300);
+    Serial.print(".");
+    if (millis() - tstart > 25000) {
+      Serial.println("\nFalha ao conectar no Wi-Fi.");
+      return;
+    }
+  }
+  Serial.printf("\nWi-Fi OK | IP: %s | RSSI: %d dBm\n", WiFi.localIP().toString().c_str(), WiFi.RSSI());
+
+  WiFiClientSecure client;
+  client.setInsecure(); // SOMENTE PARA LABORATÓRIO (não validar certificado)
+
+  double tempos_ms[N] = {0};
+  int status_codes[N] = {0};
+  size_t payload_bytes[N] = {0};
+
+  StaticJsonDocument<2048> doc;
+
+  Serial.println("\n--- Iniciando coletas ---");
+  for (int i = 0; i < N; ++i) {
+    HTTPClient http;
+    if (!http.begin(client, URL)) {
+      Serial.printf("#%d: Erro begin()\n", i + 1);
+      status_codes[i] = -1;
+      tempos_ms[i] = NAN;
+      payload_bytes[i] = 0;
+      delay(DELAY_MS);
+      continue;
+    }
+
+    uint32_t t0 = millis();
+    int code = http.GET();
+    uint32_t dt = millis() - t0;
+
+    status_codes[i] = code;
+    tempos_ms[i]    = (double)dt;
+
+    if (code > 0) {
+      String body = http.getString();
+      payload_bytes[i] = body.length();
+
+      Serial.printf("#%d: HTTP %d | %lu ms | %u bytes\n",
+                    i + 1, code, (unsigned long)dt, (unsigned)payload_bytes[i]);
+
+      // Parse JSON (opcional)
+      DeserializationError err = deserializeJson(doc, body);
+      if (!err) {
+        // Exemplo de campos (para httpbin.org/json)
+        const char* title = doc["slideshow"]["title"] | nullptr;
+        if (title) {
+          Serial.printf("     JSON[\"slideshow\"][\"title\"] = %s\n", title);
+        }
+      } else {
+        Serial.println("     (Aviso) Erro parse JSON");
+      }
+    } else {
+      // code <= 0: erro de transporte/HTTPClient
+      Serial.printf("#%d: Falha HTTP: %d (%s)\n",
+                    i + 1, code, http.errorToString(code).c_str());
+      payload_bytes[i] = 0;
+    }
+
+    http.end();
+    delay(DELAY_MS);
+  }
+
+  // Estatísticas dos tempos
+  // Ignora tempos inválidos (NaN) se algum begin falhou
+  double validos[N];
+  int k = 0;
+  for (int i = 0; i < N; ++i) {
+    if (!isnan(tempos_ms[i])) validos[k++] = tempos_ms[i];
+  }
+
+  if (k > 0) {
+    double m = mean(validos, k);
+    double sd = stddev_sample(validos, k);
+
+    // Min/Max
+    double minv = validos[0], maxv = validos[0];
+    for (int i = 1; i < k; ++i) {
+      if (validos[i] < minv) minv = validos[i];
+      if (validos[i] > maxv) maxv = validos[i];
+    }
+
+    // Sucessos (HTTP 200..299)
+    int ok = 0;
+    for (int i = 0; i < N; ++i) {
+      if (status_codes[i] >= 200 && status_codes[i] <= 299) ok++;
+    }
+
+    Serial.println("\n--- Resumo ---");
+    Serial.printf("Amostras válidas: %d de %d\n", k, N);
+    Serial.printf("Sucessos HTTP (2xx): %d/%d\n", ok, N);
+    Serial.printf("Tempo (ms) -> media: %.2f | desvio padrao (amostral): %.2f | min: %.0f | max: %.0f\n",
+                  m, sd, minv, maxv);
+  } else {
+    Serial.println("\nSem amostras válidas para estatísticas.");
+  }
+
+  Serial.println("\nConcluído.");
+}
+
+void loop() {
+}
