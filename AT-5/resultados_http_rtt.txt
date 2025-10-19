@@ -1,0 +1,70 @@
+N=100 BYTES=64 HTTP_URL=https://httpbin.org/post python3 http_rtt.py
+[10] RTT médio parcial: 1331.56 ms
+[20] RTT médio parcial: 1249.06 ms
+[30] RTT médio parcial: 1283.48 ms
+[40] RTT médio parcial: 1239.02 ms
+[50] RTT médio parcial: 1247.54 ms
+[60] RTT médio parcial: 1242.77 ms
+[70] RTT médio parcial: 1229.11 ms
+[80] RTT médio parcial: 1221.42 ms
+[90] RTT médio parcial: 1225.70 ms
+[100] RTT médio parcial: 1221.98 ms
+
+=== HTTP (público) ===
+URL: https://httpbin.org/post
+Enviadas: 100 | Recebidas: 100 | Perdas: 0
+RTT média:   1221.98 ms
+RTT mediana: 1165.92 ms
+RTT p95:     1924.24 ms
+RTT máx.:    2206.53 ms
+
+N=100 BYTES=1024 HTTP_URL=https://httpbin.org/post python3 http_rtt.py
+[10] RTT médio parcial: 1252.84 ms
+[20] RTT médio parcial: 1097.46 ms
+[30] RTT médio parcial: 1172.12 ms
+[40] RTT médio parcial: 1150.66 ms
+[50] RTT médio parcial: 1234.12 ms
+[60] RTT médio parcial: 1226.13 ms
+[70] RTT médio parcial: 1211.33 ms
+[80] RTT médio parcial: 1225.62 ms
+[90] RTT médio parcial: 1209.56 ms
+[100] RTT médio parcial: 1202.72 ms
+
+=== HTTP (público) ===
+URL: https://httpbin.org/post
+Enviadas: 100 | Recebidas: 100 | Perdas: 0
+RTT média:   1202.72 ms
+RTT mediana: 1106.10 ms
+RTT p95:     1771.54 ms
+RTT máx.:    5709.56 ms
+
+ N=100 BYTES=8192 HTTP_URL=https://httpbin.
+org/post python3 http_rtt.py
+[10] RTT médio parcial: 1447.33 ms
+[20] RTT médio parcial: 1394.16 ms
+[30] RTT médio parcial: 1451.74 ms
+[40] RTT médio parcial: 1455.64 ms
+[50] RTT médio parcial: 1571.55 ms
+[60] RTT médio parcial: 1557.08 ms
+[70] RTT médio parcial: 1546.82 ms
+[80] RTT médio parcial: 1518.61 ms
+[90] RTT médio parcial: 1510.32 ms
+[100] RTT médio parcial: 1527.25 ms
+
+=== HTTP (público) ===
+URL: https://httpbin.org/post
+Enviadas: 100 | Recebidas: 100 | Perdas: 0
+RTT média:   1527.25 ms
+RTT mediana: 1413.84 ms
+RTT p95:     2318.26 ms
+RTT máx.:    6555.30 ms
+
+
+
+
+
+
+
+
+
+

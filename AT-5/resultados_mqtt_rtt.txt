@@ -1,0 +1,88 @@
+N=100 BYTES=64 SLEEP=0.1 MQTT_HOST=broker.emqx.io MQTT_BASE=ufam/ceteli/mqttlab/grupo01 python3 mqtt_rtt.py
+[client] conectado em broker.emqx.io:1883 rc=Success
+[client] assinando: ufam/ceteli/mqttlab/grupo01/echo/resp (QoS=1)
+[10] RTT médio parcial: 1045.33 ms
+[20] RTT médio parcial: 1041.18 ms
+[30] RTT médio parcial: 1061.39 ms
+[40] RTT médio parcial: 1052.18 ms
+[50] RTT médio parcial: 1061.53 ms
+[60] RTT médio parcial: 1061.75 ms
+[70] RTT médio parcial: 1047.68 ms
+[80] RTT médio parcial: 1044.58 ms
+
+=== MQTT (público) ===
+Broker: broker.emqx.io:1883
+Topic base: ufam/ceteli/mqttlab/grupo01
+Enviadas: 100 | Recebidas: 87 | Perdas: 13
+RTT média:   1028.19 ms
+RTT mediana: 1041.58 ms
+RTT p95:     1242.87 ms
+RTT máx.:    1267.92 ms
+
+
+N=100 BYTES=
+1024 SLEEP=0.1 MQTT_HOST=broker.emqx.io MQTT_BASE=ufam/ceteli/mqttlab/grupo01 python3 mqt
+t_rtt.py
+[client] conectado em broker.emqx.io:1883 rc=Success
+[client] assinando: ufam/ceteli/mqttlab/grupo01/echo/resp (QoS=1)
+[10] RTT médio parcial: 790.26 ms
+[20] RTT médio parcial: 751.73 ms
+[30] RTT médio parcial: 726.02 ms
+[40] RTT médio parcial: 719.86 ms
+[50] RTT médio parcial: 706.22 ms
+[60] RTT médio parcial: 696.55 ms
+[70] RTT médio parcial: 688.47 ms
+[80] RTT médio parcial: 683.77 ms
+[90] RTT médio parcial: 683.26 ms
+
+=== MQTT (público) ===
+Broker: broker.emqx.io:1883
+Topic base: ufam/ceteli/mqttlab/grupo01
+Enviadas: 100 | Recebidas: 96 | Perdas: 4
+RTT média:   688.16 ms
+RTT mediana: 692.49 ms
+RTT p95:     861.54 ms
+RTT máx.:    1000.99 ms
+
+N=100 BYTES=8192 SLEEP=0.1 MQTT_HOST=broker.emqx.io MQTT_BASE=ufam/ceteli/mqttlab/grupo01 python3 mqt
+t_rtt.py
+[client] conectado em broker.emqx.io:1883 rc=Success
+[client] assinando: ufam/ceteli/mqttlab/grupo01/echo/resp (QoS=1)
+[10] RTT médio parcial: 1580.44 ms
+[20] RTT médio parcial: 1290.47 ms
+[30] RTT médio parcial: 1132.47 ms
+[40] RTT médio parcial: 1054.30 ms
+[50] RTT médio parcial: 1006.22 ms
+[60] RTT médio parcial: 972.82 ms
+[70] RTT médio parcial: 950.49 ms
+[80] RTT médio parcial: 934.45 ms
+[client] conectado em broker.emqx.io:1883 rc=Success
+[client] assinando: ufam/ceteli/mqttlab/grupo01/echo/resp (QoS=1)
+[client] conectado em broker.emqx.io:1883 rc=Success
+[client] assinando: ufam/ceteli/mqttlab/grupo01/echo/resp (QoS=1)
+[client] conectado em broker.emqx.io:1883 rc=Success
+[client] assinando: ufam/ceteli/mqttlab/grupo01/echo/resp (QoS=1)
+
+=== MQTT (público) ===
+Broker: broker.emqx.io:1883
+Topic base: ufam/ceteli/mqttlab/grupo01
+Enviadas: 100 | Recebidas: 85 | Perdas: 15
+RTT média:   927.56 ms
+RTT mediana: 835.22 ms
+RTT p95:     1626.83 ms
+RTT máx.:    1784.00 ms
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
